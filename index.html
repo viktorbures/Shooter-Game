@@ -2,14 +2,22 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
-  <title>Top-Down Shooter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2D shooter game</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Changa+One:ital@0;1&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div class="container">
+    <div class="game-wrapper">
+      <div id="sketch-container"></div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
 
-  <!-- Herní skripty -->
   <script src="js/Player.js"></script>
   <script src="js/Enemy.js"></script>
   <script src="js/Bullet.js"></script>

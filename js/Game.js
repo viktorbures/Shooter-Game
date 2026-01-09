@@ -4,11 +4,14 @@ class Game {
     this.enemies = [];
     this.bullets = [];
     this.score = 0;
-
+    this.gameOver = false;
     this.spawnTimer = 0;
+    this.difficulty = 1;
   }
 
   update() {
+    if (this.gameOver) return;
+
     this.player.update();
     
     // střelba
@@ -16,10 +19,37 @@ class Game {
       this.player.shoot(this.bullets);
     }
 
-    // spawn nepřátel
+    // spawn nepřátel - zvyšuje se obtížnost
     this.spawnTimer++;
-    if (this.spawnTimer > 60) {
-      this.enemies.push(new Enemy(random(40, width - 40), -40));
+    let spawnRate = Math.max(30, 60 - this.score * 0.5);
+    if (this.spawnTimer > spawnRate) {
+      let side = floor(random(4)); // 0: top, 1: bottom, 2: left, 3: right
+      let x, y, vx, vy;
+      let speed = 2;
+      
+      if (side === 0) { // top
+        x = random(40, width - 40);
+        y = -40;
+        vx = random(-1.5, 1.5);
+        vy = speed;
+      } else if (side === 1) { // bottom
+        x = random(40, width - 40);
+        y = height + 40;
+        vx = random(-1.5, 1.5);
+        vy = -speed;
+      } else if (side === 2) { // left
+        x = -40;
+        y = random(40, height - 40);
+        vx = speed;
+        vy = random(-1.5, 1.5);
+      } else { // right
+        x = width + 40;
+        y = random(40, height - 40);
+        vx = -speed;
+        vy = random(-1.5, 1.5);
+      }
+      
+      this.enemies.push(new Enemy(x, y, vx, vy));
       this.spawnTimer = 0;
     }
 
@@ -35,24 +65,111 @@ class Game {
   }
 
   draw() {
+    // čárkovaná pozadí
+    this.drawBackground();
+
     this.player.draw();
 
     for (let b of this.bullets) b.draw();
     for (let e of this.enemies) e.draw();
 
-    fill(255);
+    // UI
+    this.drawUI();
+
+    if (this.gameOver) {
+      this.drawGameOver();
+    }
+  }
+
+  drawBackground() {
+    stroke(0, 255, 255);
+    strokeWeight(1);
+    let gridSize = 50;
+    for (let i = 0; i < width; i += gridSize) {
+      line(i, 0, i, height);
+    }
+    for (let i = 0; i < height; i += gridSize) {
+      line(0, i, width, i);
+    }
+  }
+
+  drawUI() {
+    // Reset graphics settings
+    noStroke();
+    
+    // Background panel - centered at top
+    fill(0, 20, 40, 150);
+    rect(width / 2 - 140, 8, 280, 85, 10);
+    
+    // Cyan border glow
+    stroke(0, 255, 255, 100);
+    strokeWeight(2);
+    noFill();
+    rect(width / 2 - 140, 8, 280, 85, 10);
+    noStroke();
+    
+    // Score label
+    fill(100, 255, 100);
+    textSize(14);
+    textAlign(LEFT);
+    textStyle(NORMAL);
+    text("SCORE", width / 2 - 90, 30);
+    
+    // Score value - centered under label
+    fill(100, 255, 100);
+    textSize(36);
+    textStyle(BOLD);
+    textAlign(CENTER);
+    text(this.score, width / 2 - 70, 68);
+    
+    // Enemies label
+    fill(255, 100, 100);
+    textSize(14);
+    textAlign(LEFT);
+    textStyle(NORMAL);
+    text("ENEMIES", width / 2 + 35, 30);
+    
+    // Enemies value - centered under label
+    fill(255, 150, 150);
+    textSize(28);
+    textStyle(BOLD);
+    textAlign(CENTER);
+    text(this.enemies.length, width / 2 + 68, 66);
+  }
+
+  drawGameOver() {
+    fill(0, 0, 0, 200);
+    rect(0, 0, width, height);
+
+    fill(255, 50, 50);
+    textSize(48);
+    textAlign(CENTER, CENTER);
+    text("GAME OVER", width / 2, height / 2 - 60);
+
+    fill(255, 255, 255);
+    textSize(24);
+    text("Final Score: " + this.score, width / 2, height / 2);
+
     textSize(16);
-    text("Score: " + this.score, 10, 20);
+    text("Press R to restart", width / 2, height / 2 + 50);
   }
 
   checkCollisions() {
+    // Střely vs nepřátelé
     for (let e of this.enemies) {
       for (let b of this.bullets) {
-        if (dist(e.x, e.y, b.x, b.y) < e.size / 2) {
+        if (dist(e.x, e.y, b.x, b.y) < e.size / 2 + 4) {
           e.dead = true;
           b.dead = true;
           this.score++;
         }
+      }
+    }
+
+    // Hráč vs nepřátelé
+    for (let e of this.enemies) {
+      if (dist(this.player.x, this.player.y, e.x, e.y) < this.player.size / 2 + e.size / 2) {
+        this.gameOver = true;
       }
     }
 
