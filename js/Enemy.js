@@ -20,14 +20,10 @@ class Enemy {
     translate(this.x, this.y);
     rotate(this.rotation);
 
-    // Reset stroke/fill to ensure color consistency
     noStroke();
-
-    // Glow effect
     fill(255, 50, 50, 40);
     ellipse(0, 0, this.size + 15);
 
-    // Large spikes - 4 main spikes
     fill(255, 100, 100);
     for (let i = 0; i < 4; i++) {
       push();
@@ -36,7 +32,6 @@ class Enemy {
       pop();
     }
 
-    // Main body - hexagon
     fill(255, 80, 80);
     let sides = 6;
     let radius = this.size / 2;
@@ -49,7 +44,6 @@ class Enemy {
     }
     endShape(CLOSE);
 
-    // Center core
     fill(255, 150, 100);
     ellipse(0, 0, this.size / 2.5);
 
@@ -60,3 +54,4 @@ class Enemy {
     return this.x < -50 || this.x > width + 50 || this.y < -50 || this.y > height + 50;
   }
 }
+
