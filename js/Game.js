@@ -3,14 +3,38 @@ class Game {
     this.player = new Player(width / 2, height - 60);
     this.enemies = [];
     this.bullets = [];
+    this.upgrades = [];
     this.score = 0;
     this.gameOver = false;
+    this.paused = false;
     this.spawnTimer = 0;
     this.difficulty = 1;
+    this.level = 1;
+    this.enemiesKilledThisLevel = 0;
+    this.levelUpTime = 0;
+    
+    this.speedBoostActive = false;
+    this.speedBoostTime = 0;
+    this.rapidFireActive = false;
+    this.rapidFireTime = 0;
+    this.shieldActive = false;
+    this.shieldTime = 0;
   }
 
   update() {
     if (this.gameOver) return;
+    if (this.paused) return;
+
+    if (this.speedBoostActive && frameCount - this.speedBoostTime > 300) {
+      this.speedBoostActive = false;
+      this.player.speed = 5;
+    }
+    if (this.rapidFireActive && frameCount - this.rapidFireTime > 300) {
+      this.rapidFireActive = false;
+    }
+    if (this.shieldActive && frameCount - this.shieldTime > 300) {
+      this.shieldActive = false;
+    }
 
     this.player.update();
     
@@ -20,11 +44,11 @@ class Game {
     }
 
     this.spawnTimer++;
-    let spawnRate = Math.max(30, 60 - this.score * 0.5);
+    let spawnRate = Math.max(20, 60 - this.score * 0.5 - this.level * 5);
     if (this.spawnTimer > spawnRate) {
       let side = floor(random(4)); 
       let x, y, vx, vy;
-      let speed = 2;
+      let speed = 2 + (this.level - 1) * 0.5;
       
       if (side === 0) {
         x = random(40, width - 40);
@@ -54,11 +78,13 @@ class Game {
 
     for (let b of this.bullets) b.update();
     for (let e of this.enemies) e.update();
+    for (let u of this.upgrades) u.update();
 
     this.checkCollisions();
 
     this.bullets = this.bullets.filter(b => !b.offscreen());
     this.enemies = this.enemies.filter(e => !e.offscreen());
+    this.upgrades = this.upgrades.filter(u => !u.offscreen());
   }
 
   draw() {
@@ -68,11 +94,82 @@ class Game {
 
     for (let b of this.bullets) b.draw();
     for (let e of this.enemies) e.draw();
+    for (let u of this.upgrades) u.draw();
 
     this.drawUI();
+    
+    this.drawLevelUp();
+    
+    this.drawControls();
 
     if (this.gameOver) {
       this.drawGameOver();
+    }
+    
+    if (this.paused) {
+      this.drawPauseScreen();
+    }
+  }
+  
+  drawPauseScreen() {
+    fill(0, 0, 0, 180);
+    rect(0, 0, width, height);
+    
+    fill(255, 200, 100);
+    textSize(64);
+    textAlign(CENTER, CENTER);
+    textStyle(BOLD);
+    text("PAUSED", width / 2, height / 2 - 50);
+    
+    fill(200, 200, 200);
+    textSize(18);
+    text("Press P to resume", width / 2, height / 2 + 50);
+  }
+  
+  drawControls() {
+    noStroke();
+    fill(0, 20, 40, 150);
+    rect(width / 2 + 150, 8, 140, 130, 10);
+    
+    stroke(0, 255, 255, 100);
+    strokeWeight(2);
+    noFill();
+    rect(width / 2 + 150, 8, 140, 130, 10);
+    
+    noStroke();
+    fill(100, 200, 255);
+    textSize(11);
+    textAlign(LEFT);
+    textStyle(BOLD);
+    text("CONTROLS", width / 2 + 160, 22);
+    
+    fill(150, 220, 255);
+    textSize(9);
+    textStyle(NORMAL);
+    text("W/A/S/D Move", width / 2 + 160, 37);
+    text("Space Shoot", width / 2 + 160, 48);
+    text("P Pause", width / 2 + 160, 59);
+    text("R Restart", width / 2 + 160, 70);
+    
+    fill(100, 255, 100);
+    textSize(8);
+    text("Blue: Speed", width / 2 + 160, 88);
+    text("Red: Fire", width / 2 + 160, 97);
+    text("Yellow: Shield", width / 2 + 160, 106);
+  }
+  
+  drawLevelUp() {
+    if (this.level > 1 && frameCount - this.levelUpTime < 120) {
+      let alpha = 255 * (1 - (frameCount - this.levelUpTime) / 120);
+      fill(255, 200, 50, alpha);
+      textSize(60);
+      textAlign(CENTER, CENTER);
+      textStyle(BOLD);
+      text("LEVEL UP!", width / 2, height / 2);
+      
+      fill(255, 255, 100, alpha);
+      textSize(36);
+      text("Level " + this.level, width / 2, height / 2 + 70);
     }
   }
 
@@ -92,12 +189,12 @@ class Game {
     noStroke();
     
     fill(0, 20, 40, 150);
-    rect(width / 2 - 140, 8, 280, 85, 10);
+    rect(width / 2 - 140, 8, 280, 130, 10);
     
     stroke(0, 255, 255, 100);
     strokeWeight(2);
     noFill();
-    rect(width / 2 - 140, 8, 280, 85, 10);
+    rect(width / 2 - 140, 8, 280, 130, 10);
     noStroke();
     
     fill(100, 255, 100);
@@ -123,6 +220,12 @@ class Game {
     textStyle(BOLD);
     textAlign(CENTER);
     text(this.enemies.length, width / 2 + 68, 66);
+    
+    fill(255, 200, 100);
+    textSize(14);
+    textAlign(CENTER);
+    textStyle(NORMAL);
+    text("LEVEL " + this.level, width / 2, 115);
   }
 
   drawGameOver() {
@@ -149,18 +252,59 @@ class Game {
           e.dead = true;
           b.dead = true;
           this.score++;
+          this.enemiesKilledThisLevel++;
+          
+          if (random() < 0.25) {
+            this.upgrades.push(new Upgrade(e.x, e.y));
+          }
+          
+          if (this.enemiesKilledThisLevel >= 10) {
+            this.level++;
+            this.enemiesKilledThisLevel = 0;
+            this.levelUpTime = frameCount;
+          }
         }
+      }
+    }
+
+    for (let u of this.upgrades) {
+      if (dist(this.player.x, this.player.y, u.x, u.y) < this.player.size / 2 + u.size / 2) {
+        this.applyUpgrade(u.type);
+        u.dead = true;
       }
     }
 
     for (let e of this.enemies) {
       if (dist(this.player.x, this.player.y, e.x, e.y) < this.player.size / 2 + e.size / 2) {
-        this.gameOver = true;
+        if (!this.shieldActive) {
+          this.gameOver = true;
+        } else {
+          e.dead = true;
+          this.shieldActive = false;
+        }
       }
     }
 
     this.enemies = this.enemies.filter(e => !e.dead);
     this.bullets = this.bullets.filter(b => !b.dead);
+    this.upgrades = this.upgrades.filter(u => !u.dead);
+  }
+  
+  applyUpgrade(type) {
+    if (type === 1) {
+
+      this.speedBoostActive = true;
+      this.speedBoostTime = frameCount;
+      this.player.speed = 8;
+    } else if (type === 2) {
+
+      this.rapidFireActive = true;
+      this.rapidFireTime = frameCount;
+    } else if (type === 3) {
+      
+      this.shieldActive = true;
+      this.shieldTime = frameCount;
+    }
   }
 }
 

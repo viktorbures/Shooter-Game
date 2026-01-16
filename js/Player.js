@@ -32,7 +32,7 @@ class Player {
       let bulletY = this.y + sin(shootAngle) * turretDistance;
       
       bullets.push(new Bullet(bulletX, bulletY, shootAngle));
-      this.cooldown = 10;
+      this.cooldown = game.rapidFireActive ? 5 : 10;
     }
   }
 
@@ -84,6 +84,14 @@ class Player {
     ellipse(0, -this.size / 2 + 2, 14);
     
     pop();
+    
+    if (game.shieldActive) {
+      noFill();
+      stroke(255, 220, 100);
+      strokeWeight(3);
+      ellipse(0, 0, this.size + 35);
+      ellipse(0, 0, this.size + 45);
+    }
 
     pop();
   }

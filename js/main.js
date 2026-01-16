@@ -19,4 +19,9 @@ function keyPressed() {
       game = new Game();
     }
   }
+  if (key === 'p' || key === 'P') {
+    if (!game.gameOver) {
+      game.paused = !game.paused;
+    }
+  }
 }
