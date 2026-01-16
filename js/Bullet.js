@@ -15,7 +15,6 @@ class Bullet {
     this.x += this.vx;
     this.y += this.vy;
     
-    // Add to trail
     this.trail.push({x: this.x, y: this.y});
     if (this.trail.length > this.maxTrail) {
       this.trail.shift();
@@ -23,7 +22,6 @@ class Bullet {
   }
 
   draw() {
-    // Trail effect
     for (let i = 0; i < this.trail.length; i++) {
       let alpha = (i / this.trail.length) * 200;
       fill(255, 255, 100, alpha);
@@ -31,7 +29,6 @@ class Bullet {
       ellipse(this.trail[i].x, this.trail[i].y, 6 - (i / this.trail.length) * 3);
     }
 
-    // Main bullet with glow
     noStroke();
     fill(255, 255, 0, 150);
     ellipse(this.x, this.y, 10);
@@ -39,7 +36,6 @@ class Bullet {
     fill(255, 255, 150);
     ellipse(this.x, this.y, 6);
 
-    // Bright center
     fill(255, 255, 255);
     ellipse(this.x, this.y, 3);
   }
@@ -48,3 +44,4 @@ class Bullet {
     return this.x < -10 || this.x > width + 10 || this.y < -10 || this.y > height + 10 || this.dead;
   }
 }
+
