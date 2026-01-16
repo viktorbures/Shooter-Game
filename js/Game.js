@@ -14,35 +14,34 @@ class Game {
 
     this.player.update();
     
-    // střelba
-    if (keyIsDown(32)) { // mezerník
+
+    if (keyIsDown(32)) { 
       this.player.shoot(this.bullets);
     }
 
-    // spawn nepřátel - zvyšuje se obtížnost
     this.spawnTimer++;
     let spawnRate = Math.max(30, 60 - this.score * 0.5);
     if (this.spawnTimer > spawnRate) {
-      let side = floor(random(4)); // 0: top, 1: bottom, 2: left, 3: right
+      let side = floor(random(4)); 
       let x, y, vx, vy;
       let speed = 2;
       
-      if (side === 0) { // top
+      if (side === 0) {
         x = random(40, width - 40);
         y = -40;
         vx = random(-1.5, 1.5);
         vy = speed;
-      } else if (side === 1) { // bottom
+      } else if (side === 1) { 
         x = random(40, width - 40);
         y = height + 40;
         vx = random(-1.5, 1.5);
         vy = -speed;
-      } else if (side === 2) { // left
+      } else if (side === 2) { 
         x = -40;
         y = random(40, height - 40);
         vx = speed;
         vy = random(-1.5, 1.5);
-      } else { // right
+      } else { 
         x = width + 40;
         y = random(40, height - 40);
         vx = -speed;
@@ -53,19 +52,16 @@ class Game {
       this.spawnTimer = 0;
     }
 
-    // update bullets
     for (let b of this.bullets) b.update();
     for (let e of this.enemies) e.update();
 
     this.checkCollisions();
 
-    // odstranění mimo obrazovku
     this.bullets = this.bullets.filter(b => !b.offscreen());
     this.enemies = this.enemies.filter(e => !e.offscreen());
   }
 
   draw() {
-    // čárkovaná pozadí
     this.drawBackground();
 
     this.player.draw();
@@ -73,7 +69,6 @@ class Game {
     for (let b of this.bullets) b.draw();
     for (let e of this.enemies) e.draw();
 
-    // UI
     this.drawUI();
 
     if (this.gameOver) {
@@ -94,42 +89,35 @@ class Game {
   }
 
   drawUI() {
-    // Reset graphics settings
     noStroke();
     
-    // Background panel - centered at top
     fill(0, 20, 40, 150);
     rect(width / 2 - 140, 8, 280, 85, 10);
     
-    // Cyan border glow
     stroke(0, 255, 255, 100);
     strokeWeight(2);
     noFill();
     rect(width / 2 - 140, 8, 280, 85, 10);
     noStroke();
     
-    // Score label
     fill(100, 255, 100);
     textSize(14);
     textAlign(LEFT);
     textStyle(NORMAL);
     text("SCORE", width / 2 - 90, 30);
     
-    // Score value - centered under label
     fill(100, 255, 100);
     textSize(36);
     textStyle(BOLD);
     textAlign(CENTER);
     text(this.score, width / 2 - 70, 68);
     
-    // Enemies label
     fill(255, 100, 100);
     textSize(14);
     textAlign(LEFT);
     textStyle(NORMAL);
     text("ENEMIES", width / 2 + 35, 30);
     
-    // Enemies value - centered under label
     fill(255, 150, 150);
     textSize(28);
     textStyle(BOLD);
@@ -155,7 +143,6 @@ class Game {
   }
 
   checkCollisions() {
-    // Střely vs nepřátelé
     for (let e of this.enemies) {
       for (let b of this.bullets) {
         if (dist(e.x, e.y, b.x, b.y) < e.size / 2 + 4) {
@@ -166,7 +153,6 @@ class Game {
       }
     }
 
-    // Hráč vs nepřátelé
     for (let e of this.enemies) {
       if (dist(this.player.x, this.player.y, e.x, e.y) < this.player.size / 2 + e.size / 2) {
         this.gameOver = true;
@@ -177,3 +163,4 @@ class Game {
     this.bullets = this.bullets.filter(b => !b.dead);
   }
 }
+
