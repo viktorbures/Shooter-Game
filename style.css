@@ -37,7 +37,8 @@ body {
 
 canvas {
   display: block;
-  border: 3px solid #00ffff;
+  border: 3px solid #ffff00;
   box-shadow: 0 0 30px rgba(0, 255, 255, 0.5), inset 0 0 30px rgba(0, 255, 255, 0.1);
 }
+
 
